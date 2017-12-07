@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+
+{% block body %}
+    <section>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor%}
+                </ul>
+            {% endif %}
+        {% endwith %}
+        <form method="post">
+            <input type="hidden" class="form-input" name="_csrf_token" value="{{ _csrf_token }}" />
+            <div class="row">
+                <div class="col-md-12">
+                    <label for="_csrf_token">Catalog Item Name</label>
+                    <input type="text" class="form-input" name="item_name" required />
+                </div>
+                <div class="col-md-12">
+                    <label for="_csrf_token">Catalog Item Name</label>
+                    <textarea  class="form-input" name="item_description" required></textarea>
+                </div>
+                <div class="col-md-12">
+                    <button type="submit" class="btn btn-success">Save</button>
+                </div>
+            </div>
+        </form>
+    </section>
+{% endblock %}
+

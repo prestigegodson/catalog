@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+
+{% block head %}
+    {{ super() }}
+{% endblock %}
+
+{% block body %}
+    <section>
+        <div class="row">
+            <!-- Sidebar starts here -->
+            <div class="col-md-4 pull-left">
+                <ul>
+                    {% for category in categories %}
+                        <li> <a href="/category/{{ category.id }}/items"> {{ category.name }} </a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <!-- Sidebar ends here -->
+            <div class="col-md-7 pull-right">
+                <h2>Latest Items</h2>
+            </div>
+
+        </div>
+    </section>
+{% endblock %}
