@@ -18,8 +18,12 @@
 
 {% block body %}
         <section>
-            <div class="row">
-                <div class="col-md-12">
+            <div class="row login-container">
+                <div class="col-sm-6 col-md-offset-3 text-center login-signup-box">
+
+                    <h1>Creating Your Catalog Items</h1>
+                    <h3>One click away</h3>
+                    <p>Sign in with Google</p>
 
                     <div id="signinButton">
                         <span class="g-signin"
@@ -37,9 +41,6 @@
             </div>
         </section>
 
-        <section>
-            <div id="result"></div>
-        </section>
 {% endblock %}
 
 {% block footer_script %}
@@ -63,13 +64,12 @@
         success: function(result) {
             // Handle or verify the server response.
             if (result) {
-                $('#result').html('Login Successful!</br>'+ result + '</br>Redirecting...')
                 setTimeout(function() {
                     window.location.href = "/categories";
-                }, 4000);
+                }, 1000);
             }
             else{
-                $("#result").html("Ooops something went, we are working on it")
+                // $("#result").html("Ooops something went, we are working on it")
             }
         },
         processData: false,

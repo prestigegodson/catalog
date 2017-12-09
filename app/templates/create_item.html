@@ -2,39 +2,49 @@
 
 {% block body %}
     <section>
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                <ul class="messages">
-                    {% for message in messages %}
-                        <li>{{ message }}</li>
-                    {% endfor%}
-                </ul>
-            {% endif %}
-        {% endwith %}
         <form action="{{ url_for('create_new_item') }}" method="post">
             <input type="hidden"  name="_csrf_token" value="{{ _csrf_token }}" />
             <input type="hidden" name="category_id" value="{{ category_id }}" />
+
             <div class="row">
-                <div class="col-md-12">
-                    <label for="_csrf_token">Item Name</label>
-                    <input type="text" class="form-input" name="item_name" required />
-                </div>
-                <div class="col-md-12">
-                    <label for="_csrf_token">Item Description</label>
-                    <textarea  class="form-input" name="item_description" required></textarea>
-                </div>
-                <div class="col-md-12">
-                    <label for="_csrf_token">Category</label>
-                    <select name="category">
-                        {% for category in categories %}
-                            <option value={{category.id}}>{{ category.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-12">
-                    <button type="submit" class="btn btn-success">Save</button>
+                <div class="col-md-6 col-md-offset-3">
+                    {% with messages = get_flashed_messages() %}
+                        {% if messages %}
+                            <div class="alert alert-success alert-dismissible" role="alert">
+                                <!--<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>-->
+                                <ul class="messages">
+                                    {% for message in messages %}
+                                        <li>{{ message }}</li>
+                                    {% endfor%}
+                                </ul>
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <h3 class="text-center">CREATE NEW ITEM</h3>
+                            <div class="form-group">
+                                <label for="item_name">Item Name</label>
+                                <input type="text" class="form-control" name="item_name" id="item_name" required />
+                            </div>
+                            <div class="form-group">
+                                <label for="item_description">Item Description</label>
+                                <textarea  class="form-control" name="item_description" id="item_description" required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="category">Category</label>
+                                <select class="form-control" name="category" id="category">
+                                    {% for category in categories %}
+                                        <option value={{category.id}}>{{ category.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-large btn-success">SUBMIT</button>
+                        </div>
+                    </div>
                 </div>
             </div>
+
         </form>
     </section>
 {% endblock %}
