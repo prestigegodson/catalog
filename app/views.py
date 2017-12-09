@@ -26,6 +26,12 @@ session = DBSession()
 
 @app.before_first_request
 def seed_category_table():
+    """
+    if there is no record in Category Table:
+        insert default categories
+    else:
+        pass
+    """
     categories = session.query(Category).all()
     if len(categories) == 0:
         category_computer = Category(name='computer')
@@ -52,6 +58,8 @@ def csrf_protect(f):
             token = login_session.pop('_csrf_token', None)
             if not token or token != request.form.get('_csrf_token'):
                 abort(403)
+        return f(*args, **kwds)
+    return wrapper
 
 def is_logged_in(f):
     """
@@ -60,16 +68,24 @@ def is_logged_in(f):
     @wraps(f)
     def wrapper(*args, **kwds):
         if 'email' not in login_session:
-            redirect(url_for('login_page'))
+            return redirect(url_for('login_page'))
+        return f(*args, **kwds)
+    return wrapper
 
 def get_csrf_token():
+    """
+    This function gets random csrf token and saves in session
+    """
     if '_csrf_token' not in login_session:
         login_session['_csrf_token'] = generate_csrf_token()
     return login_session['_csrf_token']
 
 @app.route('/login', methods=['GET'])
 def login_page():
-    
+    """
+    This function renders the login page
+    if the user is not logged in
+    """
     if 'email' in login_session:
         return redirect(url_for('showCategories'))
 
@@ -80,6 +96,10 @@ def login_page():
 
 @app.route('/login',methods=['POST'])
 def login():
+    """
+    This function accepts Authentication code,
+    and attempts to retrieve access_token from auth server
+    """
     if request.args.get('state') != login_session['state']:
         return make_response("Invalide state parameter",401)
 
@@ -145,19 +165,17 @@ def login():
     login_session['picture'] = data['picture']
     login_session['email'] = data['email']
 
+    user = session.query(User).filter_by(email=data['email']).one_or_none()
+    if user is None:
+        create_new_user()
+
     return jsonify({'name': data['name'], 'email': data['email']})
-    
-@app.route('/',methods=['GET'])
-@app.route('/categories',methods=['GET'])
-def showCategories():
-    categories = session.query(Category).all()
-    return render_template('categories.html',categories=categories)
 
 @app.route('/logout')
 def logout():
     access_token = login_session['access_token']
     print('In gdisconnect access token is %s', access_token)
-    print('User name is: ' )
+    print('User name is: ')
     print(login_session['username'])
     if access_token is None:
         print('Access Token is None')
@@ -178,41 +196,121 @@ def logout():
         
         return redirect(url_for('login_page'))
     else:
-    	response = make_response(json.dumps('Failed to revoke token for given user.'),400)
-    	response.headers['Content-Type'] = 'application/json'
-    	return response
+        del login_session['access_token'] 
+        del login_session['gplus_id']
+        del login_session['username']
+        del login_session['email']
+        del login_session['picture']
+        
+        return redirect(url_for('login_page'))
+    	# response = make_response(json.dumps('Failed to revoke token for given user.'),400)
+    	# response.headers['Content-Type'] = 'application/json'
+    	# return response
 
-@app.route('category/<int:category_id>/items')
-def view_category_page(category_id):
+def create_new_user():
     """
+    This function creates a new user after login
+    if the user does not exist in database
     """
-    items = session.query()
 
-@is_logged_in
+    user = User(email=login_session['email'],username=login_session['username'],
+               pix=login_session['picture'])
+    session.add(user)
+    session.commit()
+        
+@app.route('/',methods=['GET'])
+@app.route('/categories',methods=['GET'])
+def showCategories():
+    categories = session.query(Category).all()
+    items = session.query(Item).order_by(Item.id).limit(5)
+    return render_template('categories.html',categories=categories, items=items)
+
+
+@app.route('/category/<int:cat_id>/items')
+def view_items_page(cat_id):
+    item_list = session.query(Item).filter_by(category_id=cat_id).all()
+    cat = session.query(Category).filter_by(id=cat_id).one()
+
+    return render_template('items.html', items=item_list, category=cat)
+
+@app.route('/category/item/<int:id>')
+def item_page(id):
+    item = session.query(Item).filter_by(id=id).one()
+    user = None
+    if 'email' in login_session:
+        user = session.query(User).filter_by(email=login_session['email']).one()
+    return render_template('item_page.html',item=item, user=user)
+
 @app.route('/category/item/new',methods=['GET'])
+@is_logged_in
 def create_item_page():
-    
     csrf_token = get_csrf_token()
-    return render_template("create_item.html",_csrf_token=csrf_token)
+    categories = session.query(Category).all()
+    return render_template("create_item.html", _csrf_token=csrf_token, categories=categories)
 
+
+@app.route('/category/item/new',methods=['POST'])
 @is_logged_in
 @csrf_protect
-@app.route('/category/item/new',methods=['POST'])
 def create_new_item():
-    """
-    """
     user_email = login_session['email']
-    user = session.query(User).filter_by(email=user_email).one()
+    user = session.query(User).filter_by(email=user_email).one_or_none()
+    if user is not None:
+        item_name = request.form['item_name']
+        item_description = request.form['item_description']
+        cat_id = request.form['category']
+
+        item = Item(name=item_name, description=item_description, created_date=datetime.now(), user_id=user.id, category_id=cat_id)
+
+        session.add(item)
+        session.commit()
+
+        flash('%s Item created successfully!!!' % item_name)
+        return redirect(url_for('create_item_page'))
+    else:
+        abort(401)
+
+@app.route('/category/item/<int:item_id>/confirm_delete',methods=['GET'])
+@is_logged_in
+def confirm_delete_item(item_id):
+    item = session.query(Item).filter_by(id=item_id).one_or_none()
+
+    return render_template('confirm_item_delete.html',item=item)
+
+@app.route('/category/item/<int:item_id>/delete',methods=['GET'])
+@is_logged_in
+def delete_item(item_id):
+    item = session.query(Item).filter_by(id=item_id).one_or_none()
+    cat_id = item.category_id
+    session.query(Item).filter_by(id=item_id).delete()
+
+    return redirect(url_for('view_items_page',cat_id=cat_id))
+
+@app.route('/category/item/<int:item_id>/edit',methods=['GET'])
+@is_logged_in
+def edit_item_page(item_id):
+    csrf_token = get_csrf_token()
+    categories = session.query(Category).all()
+    item = session.query(Item).filter_by(id=item_id).one_or_none()
+    return render_template("edit_item.html", _csrf_token=csrf_token, categories=categories, item=item)
+
+@app.route('/category/item/edit',methods=['POST'])
+@is_logged_in
+@csrf_protect
+def edit_item():
+    item_id = request.form['item_id']
+    item = session.query(Item).filter_by(id=item_id).one_or_none()
+
     item_name = request.form['item_name']
     item_description = request.form['item_description']
+    cat_id = request.form['category']
 
-    item = Item(name=item_name, description=item_description, created_date=datetime.now(), user_id=user.id)
+    item.name = item_name
+    item.description = item_description
+    item.category_id = cat_id
+    item.updated_Date = datetime.now()
 
-    session.add(item)
-    session.commit()
-
-    flash('%s Item created successfully!!!' % item_name)
-    return redirect(url_for('create_item_page'))
+    return redirect(url_for('item_page',id=item_id))
 
 if __name__ == '__main__':
     print('server running on port : %s' % (5000))

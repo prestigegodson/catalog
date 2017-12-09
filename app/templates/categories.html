@@ -9,6 +9,7 @@
         <div class="row">
             <!-- Sidebar starts here -->
             <div class="col-md-4 pull-left">
+                <h2>Categories</h2>
                 <ul>
                     {% for category in categories %}
                         <li> <a href="/category/{{ category.id }}/items"> {{ category.name }} </a></li>
@@ -17,7 +18,15 @@
             </div>
             <!-- Sidebar ends here -->
             <div class="col-md-7 pull-right">
+                <div class="col-md-12">
+                    <a href="{{ url_for('create_item_page') }}" class="btn btn-primary">Create New Item</a>
+                </div>
                 <h2>Latest Items</h2>
+                <ul class="items">
+                    {% for item in items %}
+                        <li><a href="{{ url_for('item_page',id=item.id) }}"> {{ item.name }} </a></li>
+                    {% endfor %}
+                </ul>
             </div>
 
         </div>

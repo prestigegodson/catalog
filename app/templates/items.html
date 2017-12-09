@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+
+{% block body %}
+    <section>
+        <div class="row">
+            <div class="col-md-12">
+                <h2 class="text-center"> {{ category.name }} Items</h2>
+            </div>
+            <div class="col-md-12">
+                {% for item in items %}
+                    <div>
+                        <p><a href="{{ url_for('item_page',id=item.id)}}">{{ item.name }} </a></p>
+                        <p>{{ item.description }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+            
+        </div>
+    </section>
+{% endblock %}
