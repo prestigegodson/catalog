@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+
+{% block body %}
+    <section>
+        <div class="row">
+            <div class="col-md-12">
+                <h2>Are you sure you want to delete?</h2>
+                <p><b>{{ item.name }}</b> Item </p>
+                <a href="{{ url_for('delete_item',item_id=item.id)}}" class="btn btn-sm btn-danger">Yes</a> &nbsp; 
+                <a href="{{ url_for('item_page',id=item.id)}}" class="btn btn-sm btn-success">No</a>
+            </div>
+        </div>
+    </section>
+{% endblock body %}

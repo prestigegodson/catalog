@@ -1,0 +1,32 @@
+html {
+  position: relative;
+  min-height: 100%;
+}
+body {
+  /* Margin bottom by footer height */
+  margin-bottom: 60px;
+}
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  /* Set the fixed height of the footer here */
+  height: 60px;
+  background-color: #f5f5f5;
+}
+
+.footer .container {
+ width: auto;
+ max-width: 680px;
+ padding: 10px 15px;
+}
+
+.login-signup-box {
+    color: #fff;
+    height: 400px; 
+    background-color: #f78;
+}
+
+.login-signup-box h1, .login-signup-box h2 {
+    text-shadow: 2px 2px 1px #444;
+}

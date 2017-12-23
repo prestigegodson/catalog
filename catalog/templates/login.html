@@ -1,0 +1,83 @@
+{% extends "layout.html" %}
+{% block head %}
+    {{ super() }}
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <script src="https://apis.google.com/js/client:platform.js?onload=start" async defer />
+    <script>
+        function start() {
+            gapi.load('auth2', function() {
+                auth2 = gapi.auth2.init({
+                client_id: '885346807843-b2dagan0abd968lc6q4aodh0ottp4b58.apps.googleusercontent.com',
+                // Scopes to request in addition to 'profile' and 'email'
+                //scope: 'additional_scope'
+                });
+            });
+        }
+    </script>
+{% endblock %}
+
+{% block body %}
+        <section>
+            <div class="row login-container">
+                <div class="col-sm-6 col-md-offset-3 text-center login-signup-box">
+
+                    <h1>Creating Your Catalog Items</h1>
+                    <h3>One click away</h3>
+                    <p>Sign in with Google</p>
+
+                    <div id="signinButton">
+                        <span class="g-signin"
+                            data-scope="openid email"
+                            data-clientid="885346807843-b2dagan0abd968lc6q4aodh0ottp4b58.apps.googleusercontent.com"
+                            data-redirecturi="postmessage"
+                            data-accesstype="offline"
+                            data-cookiepolicy="single_host_origin"
+                            data-callback="signInCallback"
+                            data-approvalprompt="force">
+                        </span>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+{% endblock %}
+
+{% block footer_script %}
+<script>
+  function signInCallback(authResult) {
+    if (authResult['code']) {
+
+        // Hide the sign-in button now that the user is authorized, for example:
+        $('#signinButton').attr('style', 'display: none');
+
+        // Send the code to the server
+        $.ajax({
+        type: 'POST',
+        url: 'http://localhost:5000/login?state={{ state }}',
+        // Always include an `X-Requested-With` header in every AJAX request,
+        // to protect against CSRF attacks.
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        contentType: 'application/octet-stream; charset=utf-8',
+        success: function(result) {
+            // Handle or verify the server response.
+            if (result) {
+                setTimeout(function() {
+                    window.location.href = "/categories";
+                }, 1000);
+            }
+            else{
+                // $("#result").html("Ooops something went, we are working on it")
+            }
+        },
+        processData: false,
+        data: authResult['code']
+        });
+    } else {
+        // There was an error.
+    }
+}
+</script>
+{% endblock %}
